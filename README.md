@@ -7,17 +7,24 @@ This is .NET Aspire support for MariaDb database.
 
 ## Rationale background
 
-These are the reasons/rationales of why this repo exists:
+The reason's main goal is simple: we want to support MariaDb's own releases, features, and variants/flavors as currently available from MariaDb general offering.
+
+These are the detailed reasons/rationales of why this repo exists:
 
 1. Current Aspire and Aspire Community Toolkit does not have Aspire AppHost's support for MariaDb.
 2. If we want to use containerized MariaDb, MariaDb needs its own pull of MariaDb Docker image and MariaDb's specific environment variables.
-3. We need to support MariaDb's server setting that can be included in the connection string. 
+3. We need to support MariaDb's specific/unique server setting that can be included in the connection string.
+4. We need to support MariaDb container images of both general MariaDb and the UBI-based of MariaDb.
+5. Keeping up with MariaDb releases and features, separated from MySql.
+6. Keeping up with different flavors of MariaDb releases, both LTS and non LTS (usually called "rolling release").
 
 Based on those rationales, therefore I develop my own Aspire AppHost's support for MariaDb, starting from MariaDb 11.4.x LTS release and the upcoming release of MariaDb 12.x.x that is still in preview as of April, 2025.
 
 **NOTE**
-For reason number 2, it is described in the source code of Aspire AppHost for MySql itself:
+
+1. For reason number 2, it is described in the source code of Aspire AppHost for MySql itself:
  [MySqlContainerImageTags code] and [MySqlBuilderExtension code]
+2. On 1st April 2025, the MariaDb's current LTS release is 11.4.5 focusing on 11.4 and the current rolling release is 11.7.2. Therefore for the LTS we could just use mariadb:11.4 (and mariadb:11.4-ubi)
 
 ## Build code Requirement
 
