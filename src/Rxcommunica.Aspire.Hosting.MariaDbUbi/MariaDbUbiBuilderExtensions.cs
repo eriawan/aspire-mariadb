@@ -1,8 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using Aspire.Hosting;
+using Aspire.Hosting.ApplicationModel;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace Rxcommunica.Aspire.Hosting.MariaDbUbi
 {
@@ -23,5 +21,88 @@ namespace Rxcommunica.Aspire.Hosting.MariaDbUbi
     /// </remarks>
     public static class MariaDbUbiBuilderExtensions
     {
+        /// <summary>
+        /// This is a static readonly string that acts as constant to store MariaDb specific env variable 
+        /// to set MariaDb's "root" password.
+        /// </summary>
+        private static readonly string PasswordEnvVarName = "MARIADB_ROOT_PASSWORD";
+
+        private const UnixFileMode FileMode644 = UnixFileMode.UserRead | UnixFileMode.UserWrite | UnixFileMode.GroupRead | UnixFileMode.OtherRead;
+
+        /// <summary>
+        /// Adds a MariaDb UBI server resource to the application model. For local development a container is used.
+        /// </summary>
+        /// <remarks>
+        /// This version of the package defaults to the <inheritdoc cref="MySqlContainerImageTags.Tag"/> tag of the <inheritdoc cref="MySqlContainerImageTags.Image"/> container image.
+        /// </remarks>
+        /// <param name="builder">The <see cref="IDistributedApplicationBuilder"/>.</param>
+        /// <param name="name">The name of the resource. This name will be used as the connection string name when referenced in a dependency.</param>
+        /// <param name="password">The parameter used to provide the root password for the MariaDb resource. If <see langword="null"/> a random password will be generated.</param>
+        /// <param name="port">The host port for MariaDb.</param>
+        /// <param name="usingLTS">True if MariaDb LTS is used. The default value is true.</param>
+        /// <returns>A reference to the <see cref="IResourceBuilder{T}"/>.</returns>
+        public static IResourceBuilder<MariaDbUbiServerResource> AddMariaDbUbi(this IDistributedApplicationBuilder builder, [ResourceName] string name, IResourceBuilder<ParameterResource>? password = null, int? port = null, bool usingLTS = true)
+        {
+            ArgumentNullException.ThrowIfNull(builder);
+            ArgumentException.ThrowIfNullOrEmpty(name);
+
+            var passwordParameter = password?.Resource ?? ParameterResourceBuilderExtensions.CreateDefaultPasswordParameter(builder, $"{name}-password");
+
+            var resource = new MariaDbUbiServerResource(name, passwordParameter);
+
+            string? connectionString = null;
+
+            builder.Eventing.Subscribe<ConnectionStringAvailableEvent>(resource, async (@event, ct) =>
+            {
+                connectionString = await resource.ConnectionStringExpression.GetValueAsync(ct).ConfigureAwait(false);
+
+                if (connectionString == null)
+                {
+                    throw new DistributedApplicationException($"ConnectionStringAvailableEvent was published for the '{resource.Name}' resource but the connection string was null.");
+                }
+            });
+
+            var healthCheckKey = $"{name}_check";
+            builder.Services.AddHealthChecks().AddMySql(sp => connectionString ?? throw new InvalidOperationException("Connection string is unavailable"), name: healthCheckKey);
+
+            string mariaDbImageTagToUse = "";
+            if (usingLTS)
+            {
+                mariaDbImageTagToUse = MariaDbUbiContainerImageTags.TagLTS;
+            }
+            else
+            {
+                mariaDbImageTagToUse = MariaDbUbiContainerImageTags.TagRollingRelease;
+            }
+            return builder.AddResource(resource)
+                              .WithEndpoint(port: port, targetPort: 3306, name: MariaDbUbiServerResource.PrimaryEndpointName) // Internal port is always 3306.
+                              .WithImage(MariaDbUbiContainerImageTags.Image, mariaDbImageTagToUse)
+                              .WithImageRegistry(MariaDbUbiContainerImageTags.Registry)
+                              .WithEnvironment(context =>
+                              {
+                                  context.EnvironmentVariables[PasswordEnvVarName] = resource.PasswordParameter;
+                              })
+                              .WithHealthCheck(healthCheckKey);
+        }
+
+        /// <summary>
+        /// Adds a MariaDb database to the application model.
+        /// </summary>
+        /// <param name="builder">The MySQL server resource builder.</param>
+        /// <param name="name">The name of the resource. This name will be used as the connection string name when referenced in a dependency.</param>
+        /// <param name="databaseName">The name of the database. If not provided, this defaults to the same value as <paramref name="name"/>.</param>
+        /// <returns>A reference to the <see cref="IResourceBuilder{T}"/>.</returns>
+        public static IResourceBuilder<MariaDbUbiDatabaseResource> AddDatabase(this IResourceBuilder<MariaDbUbiServerResource> builder, [ResourceName] string name, string? databaseName = null)
+        {
+            ArgumentNullException.ThrowIfNull(builder);
+            ArgumentException.ThrowIfNullOrEmpty(name);
+
+            // Use the resource name as the database name if it's not provided
+            databaseName ??= name;
+
+            builder.Resource.AddDatabase(name, databaseName);
+            var mySqlDatabase = new MariaDbUbiDatabaseResource(name, databaseName, builder.Resource);
+            return builder.ApplicationBuilder.AddResource(mySqlDatabase);
+        }
     }
 }

@@ -4,6 +4,12 @@
     <TargetFramework>net9.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
+    <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
+    <Authors>Eriawan Kusumawardhono</Authors>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <RepositoryType>git</RepositoryType>
+    <PackageTags>aspire;mariadb</PackageTags>
+    <Description>An Aspire Hosting support for MariaDb.</Description>
   </PropertyGroup>
 
   <ItemGroup>
@@ -51,6 +57,13 @@
     <PackageReference Include="System.Diagnostics.EventLog" />
     <PackageReference Include="System.IO.Hashing" />
     <PackageReference Include="YamlDotNet" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="README.md">
+      <Pack>True</Pack>
+      <PackagePath>\</PackagePath>
+    </None>
   </ItemGroup>
 
 </Project>

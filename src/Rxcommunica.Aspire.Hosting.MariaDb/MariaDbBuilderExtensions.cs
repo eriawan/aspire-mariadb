@@ -1,10 +1,5 @@
-﻿using Aspire.Hosting.ApplicationModel;
-using Aspire.Hosting;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using Aspire.Hosting;
+using Aspire.Hosting.ApplicationModel;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Rxcommunica.Aspire.Hosting.MariaDb
@@ -31,15 +26,15 @@ namespace Rxcommunica.Aspire.Hosting.MariaDb
         private const UnixFileMode FileMode644 = UnixFileMode.UserRead | UnixFileMode.UserWrite | UnixFileMode.GroupRead | UnixFileMode.OtherRead;
 
         /// <summary>
-        /// Adds a MySQL server resource to the application model. For local development a container is used.
+        /// Adds a MariaDb server resource to the application model. For local development a container is used.
         /// </summary>
         /// <remarks>
         /// This version of the package defaults to the <inheritdoc cref="MySqlContainerImageTags.Tag"/> tag of the <inheritdoc cref="MySqlContainerImageTags.Image"/> container image.
         /// </remarks>
         /// <param name="builder">The <see cref="IDistributedApplicationBuilder"/>.</param>
         /// <param name="name">The name of the resource. This name will be used as the connection string name when referenced in a dependency.</param>
-        /// <param name="password">The parameter used to provide the root password for the MySQL resource. If <see langword="null"/> a random password will be generated.</param>
-        /// <param name="port">The host port for MySQL.</param>
+        /// <param name="password">The parameter used to provide the root password for the MariaDb resource. If <see langword="null"/> a random password will be generated.</param>
+        /// <param name="port">The host port for MariaDb.</param>
         /// <param name="usingLTS">True if MariaDb LTS is used. The default value is true.</param>
         /// <returns>A reference to the <see cref="IResourceBuilder{T}"/>.</returns>
         public static IResourceBuilder<MariaDbServerResource> AddMariaDb(this IDistributedApplicationBuilder builder, [ResourceName] string name, IResourceBuilder<ParameterResource>? password = null, int? port = null, bool usingLTS = true)

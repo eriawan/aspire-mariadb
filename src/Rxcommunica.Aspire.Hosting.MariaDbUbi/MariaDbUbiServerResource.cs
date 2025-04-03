@@ -5,23 +5,23 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Rxcommunica.Aspire.Hosting.MariaDb
+namespace Rxcommunica.Aspire.Hosting.MariaDbUbi
 {
 
     /// <summary>
-    /// A resource that represents a MariaDb container.
+    /// A resource that represents a MariaDb UBI based container.
     /// </summary>
     /// <remarks>This class is specific for MariaDb, not to be used for MySql.</remarks>
-    public class MariaDbServerResource : ContainerResource, IResourceWithConnectionString
+    public class MariaDbUbiServerResource : ContainerResource, IResourceWithConnectionString
     {
         internal static string PrimaryEndpointName => "tcp";
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="MariaDbServerResource"/> class.
+        /// Initializes a new instance of the <see cref="MariaDbUbiServerResource"/> class.
         /// </summary>
         /// <param name="name">The name of the resource.</param>
         /// <param name="password">A parameter that contains the MariaDb server password.</param>
-        public MariaDbServerResource(string name, ParameterResource password) : base(name)
+        public MariaDbUbiServerResource(string name, ParameterResource password) : base(name)
         {
             ArgumentNullException.ThrowIfNull(password);
 
