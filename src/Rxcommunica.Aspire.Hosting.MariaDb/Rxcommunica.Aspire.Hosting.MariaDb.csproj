@@ -17,6 +17,8 @@
     <PackageReference Include="Aspire.Hosting" />
     <PackageReference Include="AspNetCore.HealthChecks.MySql" />
     <PackageReference Include="Google.Protobuf" />
+    <PackageReference Include="Grpc.AspNetCore" />
+    <PackageReference Include="Grpc.AspNetCore.Server.ClientFactory" />
     <PackageReference Include="Grpc.Tools">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
@@ -55,6 +57,7 @@
     <PackageReference Include="MySqlConnector" />
     <PackageReference Include="MySqlConnector.DependencyInjection" />
     <PackageReference Include="Polly.Core" />
+    <PackageReference Include="Semver" />
     <PackageReference Include="System.Diagnostics.EventLog" />
     <PackageReference Include="System.IO.Hashing" />
     <PackageReference Include="YamlDotNet" />
