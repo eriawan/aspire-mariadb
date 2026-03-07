@@ -10,6 +10,7 @@
 	<RepositoryType>git</RepositoryType>
     <PackageTags>aspire;mariadb;mariadbubi</PackageTags>
 	<Description>An Aspire Hosting support for MariaDb UBI based.</Description>
+	<Version>1.0.1001-devalpha101</Version>
   </PropertyGroup>
 
   <ItemGroup>

@@ -7,7 +7,7 @@ using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Rxcommunica.Aspire.Hosting.MariaDb
+namespace Rxcommunica.Aspire.Hosting.ApplicationModel
 {
     public class MariaDbDatabaseResource : Resource, IResourceWithParent<MariaDbServerResource>, IResourceWithConnectionString
     {

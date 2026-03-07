@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Rxcommunica.Aspire.Hosting.MariaDb
+namespace Rxcommunica.Aspire.Hosting.ApplicationModel
 {
 
     /// <summary>

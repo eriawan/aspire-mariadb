@@ -1,8 +1,10 @@
 ﻿using Aspire.Hosting;
 using Aspire.Hosting.ApplicationModel;
 using Microsoft.Extensions.DependencyInjection;
+using Rxcommunica.Aspire.Hosting.ApplicationModel;
+using Rxcommunica.Aspire.Hosting.MariaDb;
 
-namespace Rxcommunica.Aspire.Hosting.MariaDb
+namespace Rxcommunica.Aspire.Hosting
 {
     /// <summary>
     /// Provides extension methods for adding MariaDb resources to an Aspire's IDistributedApplicationBuilder. />.
@@ -29,13 +31,13 @@ namespace Rxcommunica.Aspire.Hosting.MariaDb
         /// Adds a MariaDb server resource to the application model. For local development a container is used.
         /// </summary>
         /// <remarks>
-        /// This version of the package defaults to the <inheritdoc cref="MySqlContainerImageTags.Tag"/> tag of the <inheritdoc cref="MySqlContainerImageTags.Image"/> container image.
+        /// This version of the package defaults to the <inheritdoc cref="MariaDbContainerImageTags.TagLTS"/> tag of the <inheritdoc cref="MySqlContainerImageTags.Image"/> container image.
         /// </remarks>
         /// <param name="builder">The <see cref="IDistributedApplicationBuilder"/>.</param>
         /// <param name="name">The name of the resource. This name will be used as the connection string name when referenced in a dependency.</param>
         /// <param name="password">The parameter used to provide the root password for the MariaDb resource. If <see langword="null"/> a random password will be generated.</param>
         /// <param name="port">The host port for MariaDb.</param>
-        /// <param name="usingLTS">True if MariaDb LTS is used. The default value is true.</param>
+        /// <param name="usingLTS">True if MariaDb LTS is used, otherwise rolling release is used. The default value is true.</param>
         /// <returns>A reference to the <see cref="IResourceBuilder{T}"/>.</returns>
         public static IResourceBuilder<MariaDbServerResource> AddMariaDb(this IDistributedApplicationBuilder builder, [ResourceName] string name, IResourceBuilder<ParameterResource>? password = null, int? port = null, bool usingLTS = true)
         {
@@ -101,5 +103,185 @@ namespace Rxcommunica.Aspire.Hosting.MariaDb
             return builder.ApplicationBuilder.AddResource(mySqlDatabase);
         }
 
+        /// <summary>
+        /// Adds a phpMyAdmin administration and development platform for MySql to the application model.
+        /// </summary>
+        /// <remarks>
+        /// This version of the package defaults to the <inheritdoc cref="MySqlContainerImageTags.PhpMyAdminTag"/> tag of the <inheritdoc cref="MySqlContainerImageTags.PhpMyAdminImage"/> container image.
+        /// </remarks>
+        /// <param name="builder">The MySql server resource builder.</param>
+        /// <param name="configureContainer">Callback to configure PhpMyAdmin container resource.</param>
+        /// <param name="containerName">The name of the container (Optional).</param>
+        /// <returns>A reference to the <see cref="IResourceBuilder{T}"/>.</returns>
+        public static IResourceBuilder<T> WithPhpMyAdmin<T>(this IResourceBuilder<T> builder, Action<IResourceBuilder<PhpMyAdminMariaDbContainerResource>>? configureContainer = null, string? containerName = null) where T : MariaDbServerResource
+        {
+            ArgumentNullException.ThrowIfNull(builder);
+
+            if (builder.ApplicationBuilder.Resources.OfType<PhpMyAdminMariaDbContainerResource>().Any())
+            {
+                return builder;
+            }
+
+            containerName ??= $"{builder.Resource.Name}-phpmyadmin";
+
+            var phpMyAdminContainer = new PhpMyAdminMariaDbContainerResource(containerName);
+            var phpMyAdminContainerBuilder = builder.ApplicationBuilder.AddResource(phpMyAdminContainer)
+                                                    .WithImage(MariaDbContainerImageTags.PhpMyAdminImage, MariaDbContainerImageTags.PhpMyAdminTag)
+                                                    .WithImageRegistry(MariaDbContainerImageTags.Registry)
+                                                    .WithHttpEndpoint(targetPort: 80, name: "http")
+                                                    .ExcludeFromManifest();
+
+            builder.ApplicationBuilder.Eventing.Subscribe<AfterEndpointsAllocatedEvent>((e, ct) =>
+            {
+                var mySqlInstances = builder.ApplicationBuilder.Resources.OfType<MariaDbServerResource>();
+
+                if (!mySqlInstances.Any())
+                {
+                    // No-op if there are no MySql resources present.
+                    return Task.CompletedTask;
+                }
+
+                if (mySqlInstances.Count() == 1)
+                {
+                    var singleInstance = mySqlInstances.Single();
+                    var endpoint = singleInstance.PrimaryEndpoint;
+                    phpMyAdminContainerBuilder.WithEnvironment(context =>
+                    {
+                        // PhpMyAdmin assumes MySql is being accessed over a default Aspire container network and hardcodes the resource address
+                        // This will need to be refactored once updated service discovery APIs are available
+                        context.EnvironmentVariables.Add("PMA_HOST", $"{endpoint.Resource.Name}:{endpoint.TargetPort}");
+                        context.EnvironmentVariables.Add("PMA_USER", "root");
+                        context.EnvironmentVariables.Add("PMA_PASSWORD", singleInstance.PasswordParameter.Value);
+                    });
+                }
+                else
+                {
+                    var tempConfigFile = WritePhpMyAdminConfiguration(mySqlInstances);
+
+                    try
+                    {
+                        var aspireStore = e.Services.GetRequiredService<IAspireStore>();
+
+                        // Deterministic file path for the configuration file based on its content
+                        var configStoreFilename = aspireStore.GetFileNameWithContent($"{builder.Resource.Name}-config.user.inc.php", tempConfigFile);
+
+                        // Need to grant read access to the config file on unix like systems.
+                        if (!OperatingSystem.IsWindows())
+                        {
+                            File.SetUnixFileMode(configStoreFilename, FileMode644);
+                        }
+
+                        phpMyAdminContainerBuilder.WithBindMount(configStoreFilename, "/etc/phpmyadmin/config.user.inc.php");
+                    }
+                    finally
+                    {
+                        try
+                        {
+                            File.Delete(tempConfigFile);
+                        }
+                        catch
+                        {
+                        }
+                    }
+                }
+
+                return Task.CompletedTask;
+            });
+
+            configureContainer?.Invoke(phpMyAdminContainerBuilder);
+
+            return builder;
+        }
+
+        /// <summary>
+        /// Configures the host port that the PGAdmin resource is exposed on instead of using randomly assigned port.
+        /// </summary>
+        /// <param name="builder">The resource builder for PGAdmin.</param>
+        /// <param name="port">The port to bind on the host. If <see langword="null"/> is used, a random port will be assigned.</param>
+        /// <returns>The resource builder for PGAdmin.</returns>
+        public static IResourceBuilder<PhpMyAdminMariaDbContainerResource> WithHostPort(this IResourceBuilder<PhpMyAdminMariaDbContainerResource> builder, int? port)
+        {
+            ArgumentNullException.ThrowIfNull(builder);
+
+            return builder.WithEndpoint("http", endpoint =>
+            {
+                endpoint.Port = port;
+            });
+        }
+
+        /// <summary>
+        /// Adds a named volume for the data folder to a MySql container resource.
+        /// </summary>
+        /// <param name="builder">The resource builder.</param>
+        /// <param name="name">The name of the volume. Defaults to an auto-generated name based on the application and resource names.</param>
+        /// <param name="isReadOnly">A flag that indicates if this is a read-only volume.</param>
+        /// <returns>The <see cref="IResourceBuilder{T}"/>.</returns>
+        public static IResourceBuilder<MariaDbServerResource> WithDataVolume(this IResourceBuilder<MariaDbServerResource> builder, string? name = null, bool isReadOnly = false)
+        {
+            ArgumentNullException.ThrowIfNull(builder);
+
+            return builder.WithVolume(name ?? VolumeNameGenerator.Generate(builder, "data"), "/var/lib/mysql", isReadOnly);
+        }
+
+        /// <summary>
+        /// Adds a bind mount for the data folder to a MySql container resource.
+        /// </summary>
+        /// <param name="builder">The resource builder.</param>
+        /// <param name="source">The source directory on the host to mount into the container.</param>
+        /// <param name="isReadOnly">A flag that indicates if this is a read-only mount.</param>
+        /// <returns>The <see cref="IResourceBuilder{T}"/>.</returns>
+        public static IResourceBuilder<MariaDbServerResource> WithDataBindMount(this IResourceBuilder<MariaDbServerResource> builder, string source, bool isReadOnly = false)
+        {
+            ArgumentNullException.ThrowIfNull(builder);
+            ArgumentException.ThrowIfNullOrEmpty(source);
+
+            return builder.WithBindMount(source, "/var/lib/mysql", isReadOnly);
+        }
+
+        /// <summary>
+        /// Adds a bind mount for the init folder to a MySql container resource.
+        /// </summary>
+        /// <param name="builder">The resource builder.</param>
+        /// <param name="source">The source directory on the host to mount into the container.</param>
+        /// <param name="isReadOnly">A flag that indicates if this is a read-only mount.</param>
+        /// <returns>The <see cref="IResourceBuilder{T}"/>.</returns>
+        public static IResourceBuilder<MariaDbServerResource> WithInitBindMount(this IResourceBuilder<MariaDbServerResource> builder, string source, bool isReadOnly = true)
+        {
+            ArgumentNullException.ThrowIfNull(builder);
+            ArgumentException.ThrowIfNullOrEmpty(source);
+
+            return builder.WithBindMount(source, "/docker-entrypoint-initdb.d", isReadOnly);
+        }
+
+        private static string WritePhpMyAdminConfiguration(IEnumerable<MariaDbServerResource> mariaDbInstances)
+        {
+            // This temporary file is not used by the container, it will be copied and then deleted
+            var filePath = Path.GetTempFileName();
+
+            using var writer = new StreamWriter(filePath);
+
+            writer.WriteLine("<?php");
+            writer.WriteLine();
+            writer.WriteLine("$i = 0;");
+            writer.WriteLine();
+            foreach (var mariaDbInstance in mariaDbInstances)
+            {
+                var endpoint = mariaDbInstance.PrimaryEndpoint;
+                writer.WriteLine("$i++;");
+                // PhpMyAdmin assumes MySql is being accessed over a default Aspire container network and hardcodes the resource address
+                // This will need to be refactored once updated service discovery APIs are available
+                writer.WriteLine($"$cfg['Servers'][$i]['host'] = '{endpoint.Resource.Name}:{endpoint.TargetPort}';");
+                writer.WriteLine($"$cfg['Servers'][$i]['verbose'] = '{mariaDbInstance.Name}';");
+                writer.WriteLine($"$cfg['Servers'][$i]['auth_type'] = 'cookie';");
+                writer.WriteLine($"$cfg['Servers'][$i]['user'] = 'root';");
+                writer.WriteLine($"$cfg['Servers'][$i]['password'] = '{mariaDbInstance.PasswordParameter.Value}';");
+                writer.WriteLine($"$cfg['Servers'][$i]['AllowNoPassword'] = true;");
+                writer.WriteLine();
+            }
+            writer.WriteLine("$cfg['DefaultServer'] = 1;");
+            writer.WriteLine("?>");
+
+            return filePath;
+        }
     }
 }
