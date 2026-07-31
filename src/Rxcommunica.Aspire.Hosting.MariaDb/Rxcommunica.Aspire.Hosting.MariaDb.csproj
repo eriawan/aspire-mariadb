@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net9.0</TargetFramework>
+    <TargetFramework>net10.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
@@ -11,11 +11,13 @@
     <PackageTags>aspire;mariadb</PackageTags>
     <Description>An Aspire Hosting support for MariaDb.</Description>
     <Version>1.0.1001-devalpha101</Version>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
   </PropertyGroup>
 
   <ItemGroup>
     <PackageReference Include="Aspire.Hosting" />
     <PackageReference Include="AspNetCore.HealthChecks.MySql" />
+    <PackageReference Include="AspNetCore.HealthChecks.Uris" />
     <PackageReference Include="Google.Protobuf" />
     <PackageReference Include="Grpc.AspNetCore" />
     <PackageReference Include="Grpc.AspNetCore.Server.ClientFactory" />
@@ -27,6 +29,7 @@
     <PackageReference Include="Json.More.Net" />
     <PackageReference Include="JsonPatch.Net" />
     <PackageReference Include="JsonPointer.Net" />
+    <PackageReference Include="MessagePack" />
     <PackageReference Include="Microsoft.Extensions.Configuration" />
     <PackageReference Include="Microsoft.Extensions.Configuration.Abstractions" />
     <PackageReference Include="Microsoft.Extensions.Configuration.Binder" />
@@ -58,6 +61,7 @@
     <PackageReference Include="MySqlConnector.DependencyInjection" />
     <PackageReference Include="Polly.Core" />
     <PackageReference Include="Semver" />
+    <PackageReference Include="StreamJsonRpc" />
     <PackageReference Include="System.Diagnostics.EventLog" />
     <PackageReference Include="System.IO.Hashing" />
     <PackageReference Include="YamlDotNet" />
