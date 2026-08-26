@@ -133,17 +133,17 @@ namespace Rxcommunica.Aspire.Hosting.MariaDb
 
             builder.ApplicationBuilder.Eventing.Subscribe<BeforeResourceStartedEvent>(async (e, ct) =>
             {
-                var mySqlInstances = builder.ApplicationBuilder.Resources.OfType<MariaDbServerResource>();
+                var mariaDbInstances = builder.ApplicationBuilder.Resources.OfType<MariaDbServerResource>();
 
-                if (!mySqlInstances.Any())
+                if (!mariaDbInstances.Any())
                 {
                     // No-op if there are no MariaDb resources present.
                     return;
                 }
 
-                if (mySqlInstances.Count() == 1)
+                if (mariaDbInstances.Count() == 1)
                 {
-                    var singleInstance = mySqlInstances.Single();
+                    var singleInstance = mariaDbInstances.Single();
                     var endpoint = singleInstance.PrimaryEndpoint;
                     phpMyAdminContainerBuilder.WithEnvironment(context =>
                     {
@@ -156,7 +156,7 @@ namespace Rxcommunica.Aspire.Hosting.MariaDb
                 }
                 else
                 {
-                    var tempConfigFile = await WritePhpMyAdminConfiguration(mySqlInstances, ct).ConfigureAwait(false);
+                    var tempConfigFile = await WritePhpMyAdminConfiguration(mariaDbInstances, ct).ConfigureAwait(false);
 
                     try
                     {
