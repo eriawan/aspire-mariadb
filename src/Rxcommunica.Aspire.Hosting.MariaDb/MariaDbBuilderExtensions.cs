@@ -4,7 +4,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Rxcommunica.Aspire.Hosting.ApplicationModel;
 using Rxcommunica.Aspire.Hosting.MariaDb;
 
-namespace Rxcommunica.Aspire.Hosting
+namespace Rxcommunica.Aspire.Hosting.MariaDb
 {
     /// <summary>
     /// Provides extension methods for adding MariaDb resources to an Aspire's IDistributedApplicationBuilder. />.
@@ -131,14 +131,14 @@ namespace Rxcommunica.Aspire.Hosting
                                                     .WithHttpEndpoint(targetPort: 80, name: "http")
                                                     .ExcludeFromManifest();
 
-            builder.ApplicationBuilder.Eventing.Subscribe<AfterEndpointsAllocatedEvent>((e, ct) =>
+            builder.ApplicationBuilder.Eventing.Subscribe<BeforeResourceStartedEvent>(async (e, ct) =>
             {
                 var mySqlInstances = builder.ApplicationBuilder.Resources.OfType<MariaDbServerResource>();
 
                 if (!mySqlInstances.Any())
                 {
-                    // No-op if there are no MySql resources present.
-                    return Task.CompletedTask;
+                    // No-op if there are no MariaDb resources present.
+                    return;
                 }
 
                 if (mySqlInstances.Count() == 1)
@@ -151,12 +151,12 @@ namespace Rxcommunica.Aspire.Hosting
                         // This will need to be refactored once updated service discovery APIs are available
                         context.EnvironmentVariables.Add("PMA_HOST", $"{endpoint.Resource.Name}:{endpoint.TargetPort}");
                         context.EnvironmentVariables.Add("PMA_USER", "root");
-                        context.EnvironmentVariables.Add("PMA_PASSWORD", singleInstance.PasswordParameter.Value);
+                        context.EnvironmentVariables.Add("PMA_PASSWORD", singleInstance.PasswordParameter);
                     });
                 }
                 else
                 {
-                    var tempConfigFile = WritePhpMyAdminConfiguration(mySqlInstances);
+                    var tempConfigFile = await WritePhpMyAdminConfiguration(mySqlInstances, ct).ConfigureAwait(false);
 
                     try
                     {
@@ -184,8 +184,6 @@ namespace Rxcommunica.Aspire.Hosting
                         }
                     }
                 }
-
-                return Task.CompletedTask;
             });
 
             configureContainer?.Invoke(phpMyAdminContainerBuilder);
@@ -253,7 +251,7 @@ namespace Rxcommunica.Aspire.Hosting
             return builder.WithBindMount(source, "/docker-entrypoint-initdb.d", isReadOnly);
         }
 
-        private static string WritePhpMyAdminConfiguration(IEnumerable<MariaDbServerResource> mariaDbInstances)
+        private static async Task<string> WritePhpMyAdminConfiguration(IEnumerable<MariaDbServerResource> mariaDbInstances, CancellationToken cancellationToken)
         {
             // This temporary file is not used by the container, it will be copied and then deleted
             var filePath = Path.GetTempFileName();
@@ -267,6 +265,7 @@ namespace Rxcommunica.Aspire.Hosting
             foreach (var mariaDbInstance in mariaDbInstances)
             {
                 var endpoint = mariaDbInstance.PrimaryEndpoint;
+                var pwd = await mariaDbInstance.PasswordParameter.GetValueAsync(cancellationToken).ConfigureAwait(false);
                 writer.WriteLine("$i++;");
                 // PhpMyAdmin assumes MySql is being accessed over a default Aspire container network and hardcodes the resource address
                 // This will need to be refactored once updated service discovery APIs are available
@@ -274,7 +273,7 @@ namespace Rxcommunica.Aspire.Hosting
                 writer.WriteLine($"$cfg['Servers'][$i]['verbose'] = '{mariaDbInstance.Name}';");
                 writer.WriteLine($"$cfg['Servers'][$i]['auth_type'] = 'cookie';");
                 writer.WriteLine($"$cfg['Servers'][$i]['user'] = 'root';");
-                writer.WriteLine($"$cfg['Servers'][$i]['password'] = '{mariaDbInstance.PasswordParameter.Value}';");
+                writer.WriteLine($"$cfg['Servers'][$i]['password'] = '{pwd}';");
                 writer.WriteLine($"$cfg['Servers'][$i]['AllowNoPassword'] = true;");
                 writer.WriteLine();
             }
