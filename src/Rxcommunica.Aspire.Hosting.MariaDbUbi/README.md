@@ -9,10 +9,10 @@ For MariaDb (non-UBI) support, you can use Rxcommunica.Aspire.Hosting.MariaDb nu
 
 ### Install the package
 
-In your AppHost project, install the .NET Aspire MySQL Hosting library with [NuGet](https://www.nuget.org):
+In your AppHost project, install the .NET Aspire MariaDb Hosting library with [NuGet](https://www.nuget.org):
 
 ```dotnetcli
-dotnet add package Rxcommunica.Aspire.Hosting.MariaDb
+dotnet add package Rxcommunica.Aspire.Hosting.MariaDbUbi
 ```
 
 ## Usage example
@@ -31,4 +31,4 @@ https://learn.microsoft.com/dotnet/aspire/database/mysql-component
 
 ## Feedback & contributing
 
-https://github.com/dotnet/aspire
+https://github.com/eriawan/aspire

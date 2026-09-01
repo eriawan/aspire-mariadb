@@ -9,7 +9,7 @@ For MariaDb UBI based support, you can use Rxcommunica.Aspire.Hosting.MariaDbUbi
 
 ### Install the package
 
-In your AppHost project, install the .NET Aspire MySQL Hosting library with [NuGet](https://www.nuget.org):
+In your AppHost project, install the .NET Aspire MariaDb Hosting library with [NuGet](https://www.nuget.org):
 
 ```dotnetcli
 dotnet add package Rxcommunica.Aspire.Hosting.MariaDb
@@ -17,7 +17,7 @@ dotnet add package Rxcommunica.Aspire.Hosting.MariaDb
 
 ## Usage example
 
-Then, in the _Program.cs_ file of `AppHost`, add a MySQL resource and consume the connection using the following methods:
+Then, in the _Program.cs_ file of `AppHost`, add a MariaDb resource and consume the connection using the following methods:
 
 ```csharp
 var db = builder.AddMariaDb("mariadb").AddDatabase("mydb");
