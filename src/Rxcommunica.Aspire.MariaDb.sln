@@ -1,8 +1,8 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 18
-VisualStudioVersion = 18.8.12023.21 stable
-MinimumVisualStudioVersion = 17.0.31903.59
+VisualStudioVersion = 18.8.12023.21
+MinimumVisualStudioVersion = 18.8.12023.21
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Rxcommunica.Aspire.Hosting.MariaDb", "Rxcommunica.Aspire.Hosting.MariaDb\Rxcommunica.Aspire.Hosting.MariaDb.csproj", "{9A0CE3CF-1E77-4C9A-9B46-148A2F5574EE}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Rxcommunica.Aspire.Hosting.MariaDbUbi", "Rxcommunica.Aspire.Hosting.MariaDbUbi\Rxcommunica.Aspire.Hosting.MariaDbUbi.csproj", "{96102A52-5983-49CC-B8D0-E69A66FD8560}"
