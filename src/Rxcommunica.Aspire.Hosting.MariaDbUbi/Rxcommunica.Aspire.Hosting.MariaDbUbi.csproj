@@ -10,16 +10,22 @@
 	<RepositoryType>git</RepositoryType>
     <PackageTags>aspire;mariadb;mariadbubi</PackageTags>
 	<Description>An Aspire Hosting support for MariaDb UBI based.</Description>
-	<Version>1.0.1001-devalpha101</Version>
+	<Version>1.0.101-devalpha102</Version>
 	<PackageLicenseExpression>MIT</PackageLicenseExpression>
   </PropertyGroup>
 
   <ItemGroup>
 	  <PackageReference Include="Aspire.Hosting" />
 	  <PackageReference Include="AspNetCore.HealthChecks.MySql" />
+	  <PackageReference Include="AspNetCore.HealthChecks.Uris" />
 	  <PackageReference Include="Google.Protobuf" />
 	  <PackageReference Include="Grpc.AspNetCore" />
+	  <PackageReference Include="Grpc.AspNetCore.Server" />
 	  <PackageReference Include="Grpc.AspNetCore.Server.ClientFactory" />
+	  <PackageReference Include="Grpc.Core.Api" />
+	  <PackageReference Include="Grpc.Net.Client" />
+	  <PackageReference Include="Grpc.Net.ClientFactory" />
+	  <PackageReference Include="Grpc.Net.Common" />
 	  <PackageReference Include="Grpc.Tools">
 		  <PrivateAssets>all</PrivateAssets>
 		  <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
@@ -28,6 +34,9 @@
 	  <PackageReference Include="Json.More.Net" />
 	  <PackageReference Include="JsonPatch.Net" />
 	  <PackageReference Include="JsonPointer.Net" />
+	  <PackageReference Include="MessagePack" />
+	  <PackageReference Include="MessagePack.Annotations" />
+	  <PackageReference Include="Microsoft.Extensions.Caching.Abstractions" />
 	  <PackageReference Include="Microsoft.Extensions.Configuration" />
 	  <PackageReference Include="Microsoft.Extensions.Configuration.Abstractions" />
 	  <PackageReference Include="Microsoft.Extensions.Configuration.Binder" />
@@ -40,11 +49,14 @@
 	  <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" />
 	  <PackageReference Include="Microsoft.Extensions.Diagnostics" />
 	  <PackageReference Include="Microsoft.Extensions.Diagnostics.Abstractions" />
+	  <PackageReference Include="Microsoft.Extensions.Diagnostics.HealthChecks" />
+	  <PackageReference Include="Microsoft.Extensions.Diagnostics.HealthChecks.Abstractions" />
 	  <PackageReference Include="Microsoft.Extensions.FileProviders.Abstractions" />
 	  <PackageReference Include="Microsoft.Extensions.FileProviders.Physical" />
 	  <PackageReference Include="Microsoft.Extensions.FileSystemGlobbing" />
 	  <PackageReference Include="Microsoft.Extensions.Hosting" />
 	  <PackageReference Include="Microsoft.Extensions.Hosting.Abstractions" />
+	  <PackageReference Include="Microsoft.Extensions.Http" />
 	  <PackageReference Include="Microsoft.Extensions.Logging" />
 	  <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" />
 	  <PackageReference Include="Microsoft.Extensions.Logging.Configuration" />
@@ -57,8 +69,12 @@
 	  <PackageReference Include="Microsoft.Extensions.Primitives" />
 	  <PackageReference Include="MySqlConnector" />
 	  <PackageReference Include="MySqlConnector.DependencyInjection" />
+	  <PackageReference Include="Newtonsoft.Json" />
+	  <PackageReference Include="OpenTelemetry" />
+	  <PackageReference Include="OpenTelemetry.Api" />
 	  <PackageReference Include="Polly.Core" />
 	  <PackageReference Include="Semver" />
+	  <PackageReference Include="StreamJsonRpc" />
 	  <PackageReference Include="System.Diagnostics.EventLog" />
 	  <PackageReference Include="System.IO.Hashing" />
 	  <PackageReference Include="YamlDotNet" />
