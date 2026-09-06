@@ -8,22 +8,28 @@ namespace Rxcommunica.Aspire.Hosting.MariaDbUbi
 {
     internal class MariaDbUbiContainerImageTags
     {
+        /// <summary>Docker official registry address</summary>
         /// <remarks>docker.io</remarks>
         public const string Registry = "docker.io";
 
-        /// <remarks>library/mysql</remarks>
+        /// <summary>MariaDb image subdomain</summary>
+        /// <remarks>library/mariadb</remarks>
         public const string Image = "library/mariadb";
 
-        /// <remarks>MariaDb 11.4 LTS release</remarks>
-        public const string TagLTS = "11.4-ubi";
+        /// <summary>Maria Db 12.3 UBI LTS</summary>
+        /// <remarks>MariaDb 12.3 UBI LTS release as of September 2026.</remarks>
+        public const string TagLTS = "12.3-ubi";
 
-        /// <remarks>MariaDb 11.7 rolling release. It is not an LTS release.</remarks>
-        public const string TagRollingRelease = "11.7-ubi";
+        /// <summary>MariaDb UBI rolling release.</summary>
+        /// <remarks>MariaDb 12.2 rolling release as of September 2026. It is not an LTS release.</remarks>
+        public const string TagRollingRelease = "12.2-ubi";
 
-        /// <remarks>library/phpmyadmin</remarks>
+        /// <summary>PHPMyAdmin image</summary>
+        /// <remarks>PHPMyAdmin image library/phpmyadmin</remarks>
         public const string PhpMyAdminImage = "library/phpmyadmin";
 
-        /// <remarks>5.2</remarks>
+        /// <summary>PHPMyAdmin version as of September 2026.</summary>
+        /// <remarks>PHPMyAdmin version as of September 2026, v5.2</remarks>
         public const string PhpMyAdminTag = "5.2";
     }
 }
