@@ -5,4 +5,4 @@
 
 using System.Diagnostics.CodeAnalysis;
 
-[assembly: SuppressMessage("Style", "IDE0290:Use primary constructor", Justification = "<Pending>", Scope = "member", Target = "~M:Rxcommunica.Aspire.Hosting.ApplicationModel.PhpMyAdminMariaDbContainerResource.#ctor(System.String)")]
+[assembly: SuppressMessage("Style", "IDE0290:Use primary constructor", Justification = "Prefer readability over newer language feature of primary constructor.", Scope = "member", Target = "~M:Rxcommunica.Aspire.Hosting.ApplicationModel.PhpMyAdminMariaDbContainerResource.#ctor(System.String)")]
