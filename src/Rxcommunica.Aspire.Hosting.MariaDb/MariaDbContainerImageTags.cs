@@ -28,7 +28,7 @@ namespace Rxcommunica.Aspire.Hosting.MariaDb
         /// <remarks>PHPMyAdmin image library/phpmyadmin</remarks>
         public const string PhpMyAdminImage = "library/phpmyadmin";
 
-        /// <summary>PHPMyAdmin version as of September 2026.</summary>
+        /// <summary>PHPMyAdmin version tag as of September 2026.</summary>
         /// <remarks>PHPMyAdmin version as of September 2026, v5.2</remarks>
         public const string PhpMyAdminTag = "5.2";
     }

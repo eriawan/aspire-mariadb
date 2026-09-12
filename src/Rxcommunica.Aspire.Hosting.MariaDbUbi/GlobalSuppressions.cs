@@ -5,4 +5,5 @@
 
 using System.Diagnostics.CodeAnalysis;
 
-[assembly: SuppressMessage("Style", "IDE0290:Use primary constructor", Justification = "Prefer readability over newer language feature of primary constructor.", Scope = "member", Target = "~M:Rxcommunica.Aspire.Hosting.MariaDbUbi.PhpMyAdminMariaDbUbiContainerResource.#ctor(System.String)")]
+[assembly: SuppressMessage("Style", "IDE0290:Use primary constructor", Justification = "Prefer readability over newer language feature of primary constructor.", Scope = "member", Target = "~M:Rxcommunica.Aspire.Hosting.MariaDbUbi.PhpMyAdminMariaDbContainerResource.#ctor(System.String)")]
+[assembly: SuppressMessage("Style", "IDE0130:Namespace does not match folder structure", Justification = "Namespace is kept as is to ensure closer implementation with Microsoft's Aspire Hosting support for MySql", Scope = "namespace", Target = "~N:Rxcommunica.Aspire.Hosting")]

@@ -46,7 +46,7 @@ namespace Rxcommunica.Aspire.Hosting.MariaDbUbi
             ReferenceExpression.Create(
                 $"Server={PrimaryEndpoint.Property(EndpointProperty.Host)};Port={PrimaryEndpoint.Property(EndpointProperty.Port)};User ID=root;Password={PasswordParameter}");
 
-        private readonly Dictionary<string, string> _databases = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+        private readonly Dictionary<string, string> _databases = new(StringComparer.OrdinalIgnoreCase);
 
         /// <summary>
         /// A dictionary where the key is the resource name and the value is the database name.

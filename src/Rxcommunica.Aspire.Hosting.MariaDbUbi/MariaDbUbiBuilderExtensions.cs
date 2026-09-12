@@ -33,7 +33,7 @@ namespace Rxcommunica.Aspire.Hosting.MariaDbUbi
         /// Adds a MariaDb UBI server resource to the application model. For local development a container is used.
         /// </summary>
         /// <remarks>
-        /// This version of the package defaults to the <inheritdoc cref="MariaDbUbiContainerImageTags.TagLTS"/> tag of the <inheritdoc cref="MySqlContainerImageTags.Image"/> container image.
+        /// This version of the package defaults to the <inheritdoc cref="MariaDbUbiContainerImageTags.TagLTS"/> tag of the <inheritdoc cref="MariaDbUbiContainerImageTags.Image"/> container image.
         /// </remarks>
         /// <param name="builder">The <see cref="IDistributedApplicationBuilder"/>.</param>
         /// <param name="name">The name of the resource. This name will be used as the connection string name when referenced in a dependency.</param>
@@ -88,7 +88,7 @@ namespace Rxcommunica.Aspire.Hosting.MariaDbUbi
         /// <summary>
         /// Adds a MariaDb database to the application model.
         /// </summary>
-        /// <param name="builder">The MySQL server resource builder.</param>
+        /// <param name="builder">The MariaDb server resource builder.</param>
         /// <param name="name">The name of the resource. This name will be used as the connection string name when referenced in a dependency.</param>
         /// <param name="databaseName">The name of the database. If not provided, this defaults to the same value as <paramref name="name"/>.</param>
         /// <returns>A reference to the <see cref="IResourceBuilder{T}"/>.</returns>
@@ -106,41 +106,41 @@ namespace Rxcommunica.Aspire.Hosting.MariaDbUbi
         }
 
         /// <summary>
-        /// Adds a phpMyAdmin administration and development platform for MySql to the application model.
+        /// Adds a phpMyAdmin administration and development platform for MariaDb to the application model.
         /// </summary>
         /// <remarks>
-        /// This version of the package defaults to the <inheritdoc cref="MySqlContainerImageTags.PhpMyAdminTag"/> tag of the <inheritdoc cref="MySqlContainerImageTags.PhpMyAdminImage"/> container image.
+        /// This version of the package defaults to the <inheritdoc cref="MariaDbUbiContainerImageTags.PhpMyAdminTag"/> tag of the <inheritdoc cref="MariaDbUbiContainerImageTags.PhpMyAdminImage"/> container image.
         /// </remarks>
         /// <param name="builder">The MySql UBI server resource builder.</param>
         /// <param name="configureContainer">Callback to configure PhpMyAdmin container resource.</param>
         /// <param name="containerName">The name of the container (Optional).</param>
         /// <returns>A reference to the <see cref="IResourceBuilder{T}"/>.</returns>
-        public static IResourceBuilder<T> WithPhpMyAdmin<T>(this IResourceBuilder<T> builder, Action<IResourceBuilder<PhpMyAdminMariaDbUbiContainerResource>>? configureContainer = null, string? containerName = null) where T : MariaDbUbiServerResource
+        public static IResourceBuilder<T> WithPhpMyAdmin<T>(this IResourceBuilder<T> builder, Action<IResourceBuilder<PhpMyAdminMariaDbContainerResource>>? configureContainer = null, string? containerName = null) where T : MariaDbUbiServerResource
         {
             ArgumentNullException.ThrowIfNull(builder);
 
-            if (builder.ApplicationBuilder.Resources.OfType<PhpMyAdminMariaDbUbiContainerResource>().Any())
+            if (builder.ApplicationBuilder.Resources.OfType<PhpMyAdminMariaDbContainerResource>().Any())
             {
                 return builder;
             }
 
             containerName ??= $"{builder.Resource.Name}-phpmyadmin";
 
-            var phpMyAdminContainer = new PhpMyAdminMariaDbUbiContainerResource(containerName);
+            var phpMyAdminContainer = new PhpMyAdminMariaDbContainerResource(containerName);
             var phpMyAdminContainerBuilder = builder.ApplicationBuilder.AddResource(phpMyAdminContainer)
                                                     .WithImage(MariaDbUbiContainerImageTags.PhpMyAdminImage, MariaDbUbiContainerImageTags.PhpMyAdminTag)
                                                     .WithImageRegistry(MariaDbUbiContainerImageTags.Registry)
                                                     .WithHttpEndpoint(targetPort: 80, name: "http")
                                                     .ExcludeFromManifest();
 
-            builder.ApplicationBuilder.Eventing.Subscribe<AfterEndpointsAllocatedEvent>((e, ct) =>
+            builder.ApplicationBuilder.Eventing.Subscribe<BeforeResourceStartedEvent>(async (e, ct) =>
             {
                 var mariaDbUbiInstances = builder.ApplicationBuilder.Resources.OfType<MariaDbUbiServerResource>();
 
                 if (!mariaDbUbiInstances.Any())
                 {
-                    // No-op if there are no MySql resources present.
-                    return Task.CompletedTask;
+                    // No-op if there are no MariaDb resources present.
+                    return;
                 }
 
                 if (mariaDbUbiInstances.Count() == 1)
@@ -153,12 +153,12 @@ namespace Rxcommunica.Aspire.Hosting.MariaDbUbi
                         // This will need to be refactored once updated service discovery APIs are available
                         context.EnvironmentVariables.Add("PMA_HOST", $"{endpoint.Resource.Name}:{endpoint.TargetPort}");
                         context.EnvironmentVariables.Add("PMA_USER", "root");
-                        context.EnvironmentVariables.Add("PMA_PASSWORD", singleInstance.PasswordParameter.Value);
+                        context.EnvironmentVariables.Add("PMA_PASSWORD", singleInstance.PasswordParameter);
                     });
                 }
                 else
                 {
-                    var tempConfigFile = WritePhpMyAdminConfiguration(mariaDbUbiInstances);
+                    var tempConfigFile = await WritePhpMyAdminConfiguration(mariaDbUbiInstances, ct);
 
                     try
                     {
@@ -186,8 +186,6 @@ namespace Rxcommunica.Aspire.Hosting.MariaDbUbi
                         }
                     }
                 }
-
-                return Task.CompletedTask;
             });
 
             configureContainer?.Invoke(phpMyAdminContainerBuilder);
@@ -201,7 +199,7 @@ namespace Rxcommunica.Aspire.Hosting.MariaDbUbi
         /// <param name="builder">The resource builder for PGAdmin.</param>
         /// <param name="port">The port to bind on the host. If <see langword="null"/> is used, a random port will be assigned.</param>
         /// <returns>The resource builder for PGAdmin.</returns>
-        public static IResourceBuilder<PhpMyAdminMariaDbUbiContainerResource> WithHostPort(this IResourceBuilder<PhpMyAdminMariaDbUbiContainerResource> builder, int? port)
+        public static IResourceBuilder<PhpMyAdminMariaDbContainerResource> WithHostPort(this IResourceBuilder<PhpMyAdminMariaDbContainerResource> builder, int? port)
         {
             ArgumentNullException.ThrowIfNull(builder);
 
@@ -226,7 +224,7 @@ namespace Rxcommunica.Aspire.Hosting.MariaDbUbi
         }
 
         /// <summary>
-        /// Adds a bind mount for the data folder to a MySql container resource.
+        /// Adds a bind mount for the data folder to a MariaDB container resource.
         /// </summary>
         /// <param name="builder">The resource builder.</param>
         /// <param name="source">The source directory on the host to mount into the container.</param>
@@ -241,7 +239,7 @@ namespace Rxcommunica.Aspire.Hosting.MariaDbUbi
         }
 
         /// <summary>
-        /// Adds a bind mount for the init folder to a MySql container resource.
+        /// Adds a bind mount for the init folder to a MariaDB container resource.
         /// </summary>
         /// <param name="builder">The resource builder.</param>
         /// <param name="source">The source directory on the host to mount into the container.</param>
@@ -255,7 +253,7 @@ namespace Rxcommunica.Aspire.Hosting.MariaDbUbi
             return builder.WithBindMount(source, "/docker-entrypoint-initdb.d", isReadOnly);
         }
 
-        private static string WritePhpMyAdminConfiguration(IEnumerable<MariaDbUbiServerResource> mariaDbUbiInstances)
+        private static async Task<string> WritePhpMyAdminConfiguration(IEnumerable<MariaDbUbiServerResource> mariaDbUbiInstances, CancellationToken cancellationToken)
         {
             // This temporary file is not used by the container, it will be copied and then deleted
             var filePath = Path.GetTempFileName();
@@ -269,6 +267,7 @@ namespace Rxcommunica.Aspire.Hosting.MariaDbUbi
             foreach (var mariaDbUbiInstance in mariaDbUbiInstances)
             {
                 var endpoint = mariaDbUbiInstance.PrimaryEndpoint;
+                var pwd = await mariaDbUbiInstance.PasswordParameter.GetValueAsync(cancellationToken).ConfigureAwait(false);
                 writer.WriteLine("$i++;");
                 // PhpMyAdmin assumes MySql is being accessed over a default Aspire container network and hardcodes the resource address
                 // This will need to be refactored once updated service discovery APIs are available
@@ -276,7 +275,7 @@ namespace Rxcommunica.Aspire.Hosting.MariaDbUbi
                 writer.WriteLine($"$cfg['Servers'][$i]['verbose'] = '{mariaDbUbiInstance.Name}';");
                 writer.WriteLine($"$cfg['Servers'][$i]['auth_type'] = 'cookie';");
                 writer.WriteLine($"$cfg['Servers'][$i]['user'] = 'root';");
-                writer.WriteLine($"$cfg['Servers'][$i]['password'] = '{mariaDbUbiInstance.PasswordParameter.Value}';");
+                writer.WriteLine($"$cfg['Servers'][$i]['password'] = '{pwd}';");
                 writer.WriteLine($"$cfg['Servers'][$i]['AllowNoPassword'] = true;");
                 writer.WriteLine();
             }

@@ -21,7 +21,7 @@ namespace Rxcommunica.Aspire.Hosting.ApplicationModel
         private readonly string _databaseName = string.Empty;
 
         /// <summary>
-        /// Gets the parent MySQL container resource.
+        /// Gets the parent MariaDb container resource.
         /// </summary>
         public MariaDbServerResource Parent
         {
@@ -32,7 +32,7 @@ namespace Rxcommunica.Aspire.Hosting.ApplicationModel
         }
 
         /// <summary>
-        /// Gets the connection string expression for the MySQL database.
+        /// Gets the connection string expression for the MariaDb database.
         /// </summary>
         public ReferenceExpression ConnectionStringExpression =>
            ReferenceExpression.Create($"{Parent};Database={DatabaseName}");
