@@ -1,4 +1,3 @@
-
 # Aspire support for MariaDb focusing on .NET 10.0 and later
 
 ---
@@ -18,13 +17,14 @@ These are the detailed reasons/rationales of why this repo exists:
 5. Keeping up with MariaDb releases and features, separated from MySql.
 6. Keeping up with different flavors of MariaDb releases, both LTS and non LTS (usually called "rolling release").
 
-Based on those rationales, therefore I develop my own Aspire AppHost's support for MariaDb, starting from MariaDb 11.4.x LTS release and the upcoming release of MariaDb 12.x.x that is still in preview as of April, 2025.
+Based on those rationales, this repository provides Aspire AppHost support for MariaDB with active focus on MariaDB current supported release lines of 12.2 LTS and 12.3 Rolling release.
 
 **NOTE**
 
 1. For reason number 2, it is described in the source code of Aspire AppHost for MySql itself:
- [MySqlContainerImageTags code] and [MySqlBuilderExtension code]
-2. On August 2026, the MariaDb's current LTS release is `12.2.3` focusing on 12.2 and the current rolling release is `12.3.2`. Therefore for the LTS we could just use `mariadb:12.2` and for the related UBI is `mariadb:11.4-ubi`)
+   [MySqlContainerImageTags code] and [MySqlBuilderExtension code]
+2. As of August 2026, MariaDB LTS is `12.2.x` and rolling release is `12.3.x`.  
+   Use `mariadb:12.2` for LTS and `mariadb:12.3` for rolling (and their corresponding UBI tags where available).
 
 ## Build code Requirement
 
